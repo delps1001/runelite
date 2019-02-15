@@ -21,7 +21,7 @@ import net.runelite.client.events.LevelUp;
 public class LevelUpManager
 {
 	private static final Pattern LEVEL_UP_PATTERN = Pattern.compile(".*Your ([a-zA-Z]+) (?:level is|are)? now (\\d+)\\.");
-	private static Set<LevelUp> levelUps = new HashSet<>();
+	private static final Set<LevelUp> levelUps = new HashSet<>();
 	private EventBus eventBus;
 
 	@Inject
@@ -37,25 +37,17 @@ public class LevelUpManager
 	public void onGameTick(GameTick tick)
 	{
 		LevelUp levelUpEvent = null;
+
 		if (client.getWidget(WidgetInfo.LEVEL_UP_LEVEL) != null)
 		{
-			log.debug("HERE found level up widget");
 			levelUpEvent = parseLevelUpWidget();
 		}
 
-		if (levelUpEvent != null)
-		{
-			levelUps.add(levelUpEvent);
-		}
-		else
-		{
-			return;
-		}
-
-		if (!levelUps.contains(levelUpEvent))
+		if (levelUpEvent != null && !levelUps.contains(levelUpEvent))
 		{
 			log.debug("Found level up: {}", levelUpEvent);
 			eventBus.post(levelUpEvent);
+			levelUps.add(levelUpEvent);
 		}
 	}
 
@@ -75,12 +67,7 @@ public class LevelUpManager
 
 		String skillName = m.group(1);
 		String skillLevel = m.group(2);
-		return new LevelUp(skillName, new Integer(skillLevel), client.getUsername());
+		return new LevelUp(skillName, new Integer(skillLevel), client.getLocalPlayer().getName());
 	}
 
-	@Subscribe
-	public void onLevelUp(LevelUp event)
-	{
-		log.debug("OMG FOUND LEVEL UP EVENT: {}", event);
-	}
 }
